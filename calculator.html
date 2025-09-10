@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Beginner-Friendly Calculator</title>
+    <style>
+        /* Reset some default styles */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f7f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .calculator {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 320px;
+            max-width: 90vw;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Screen display */
+        .screen {
+            background: #222;
+            color: #0f0;
+            font-size: 2.5rem;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: right;
+            margin-bottom: 20px;
+            height: 50px;
+            overflow-x: auto;
+            font-family: monospace;
+            user-select: none;
+        }
+
+        /* Buttons grid */
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        /* Button styles */
+        button {
+            padding: 15px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 8px;
+            background: #e0e0e0;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            user-select: none;
+        }
+
+        button:hover {
+            background: #d4d4d4;
+        }
+
+        /* Operator buttons */
+        .operator {
+            background: #ff9500;
+            color: white;
+        }
+
+        .operator:hover {
+            background: #e08900;
+        }
+
+        /* Equal button */
+        .equal {
+            background: #007aff;
+            color: white;
+            grid-column: span 2;
+        }
+
+        .equal:hover {
+            background: #005ecb;
+        }
+
+        /* Clear button */
+        .clear {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .clear:hover {
+            background: #cc2a24;
+        }
+
+        /* Responsive font size */
+        @media (max-width: 400px) {
+            .screen {
+                font-size: 1.8rem;
+                height: 40px;
+            }
+
+            button {
+                font-size: 1rem;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <!-- Display screen for input and result -->
+        <div class="screen" id="screen">0</div>
+
+        <!-- Buttons container -->
+        <div class="buttons">
+            <!-- Number buttons -->
+            <button class="clear" id="clear">Clear</button>
+            <button class="operator" data-op="/">&#247;</button>
+            <button class="operator" data-op="*">&times;</button>
+            <button class="operator" data-op="-">−</button>
+
+            <button data-num="7">7</button>
+            <button data-num="8">8</button>
+            <button data-num="9">9</button>
+            <button class="operator" data-op="+">+</button>
+
+            <button data-num="4">4</button>
+            <button data-num="5">5</button>
+            <button data-num="6">6</button>
+            <button class="equal" id="equals">=</button>
+
+            <button data-num="1">1</button>
+            <button data-num="2">2</button>
+            <button data-num="3">3</button>
+
+            <button data-num="0" style="grid-column: span 2;">0</button>
+            <button data-num=".">.</button>
+        </div>
+    </div>
+
+    <script>
+        // Get references to elements
+        const screen = document.getElementById('screen');
+        const buttons = document.querySelectorAll('button');
+
+        // Current input string
+        let input = '';
+
+        // Function to update the screen display
+        function updateScreen() {
+            screen.textContent = input || '0';
+        }
+
+        // Function to clear the input
+        function clearInput() {
+            input = '';
+            updateScreen();
+        }
+
+        // Function to append number or dot to input
+        function appendNumber(num) {
+            // Prevent multiple dots in a number segment
+            if (num === '.') {
+                // Split input by operators to check last number segment
+                const parts = input.split(/[\+\-\*\/]/);
+                const lastPart = parts[parts.length - 1];
+                if (lastPart.includes('.')) {
+                    return; // Ignore if dot already present
+                }
+            }
+            input += num;
+            updateScreen();
+        }
+
+        // Function to append operator to input
+        function appendOperator(op) {
+            if (input === '') {
+                // Prevent operator as first character except minus for negative numbers
+                if (op === '-') {
+                    input = '-';
+                    updateScreen();
+                }
+                return;
+            }
+            // Prevent two operators in a row
+            if (/[+\-*/]$/.test(input)) {
+                // Replace last operator with new one
+                input = input.slice(0, -1) + op;
+            } else {
+                input += op;
+            }
+            updateScreen();
+        }
+
+        // Function to calculate the result
+        function calculate() {
+            if (input === '') return;
+            // Prevent calculation if ends with operator
+            if (/[+\-*/.]$/.test(input)) {
+                input = input.slice(0, -1);
+            }
+            try {
+                // Use eval safely by restricting input to numbers and operators
+                if (/^[0-9+\-*/.]+$/.test(input)) {
+                    const result = eval(input);
+                    input = result.toString();
+                    updateScreen();
+                } else {
+                    screen.textContent = 'Error';
+                }
+            } catch (e) {
+                screen.textContent = 'Error';
+            }
+        }
+
+        // Add event listeners to buttons
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (button.id === 'clear') {
+                    clearInput();
+                } else if (button.id === 'equals') {
+                    calculate();
+                } else if (button.hasAttribute('data-num')) {
+                    appendNumber(button.getAttribute('data-num'));
+                } else if (button.hasAttribute('data-op')) {
+                    appendOperator(button.getAttribute('data-op'));
+                }
+            });
+        });
+
+        // Initialize screen
+        updateScreen();
+    </script>
+</body>
+</html>
